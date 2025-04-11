@@ -64,7 +64,7 @@ upload_directus_to_bucket() {
 copy_directus_to_bucket() {
     # Sync Directus files to a temporary directory
     TEMP_DIR="/tmp/$DIRECTUS_S3_BUCKET_NAME"
-    s3 sync "$DIRECTUS_S3_BUCKET_NAME" "$TEMP_DIR"
+    s3 sync "s3://$DIRECTUS_S3_BUCKET_NAME" "$TEMP_DIR"
     tar -cf . - "$TEMP_DIR" | gzip | upload_directus_to_bucket
 }
 
