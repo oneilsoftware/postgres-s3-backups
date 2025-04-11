@@ -55,10 +55,24 @@ upload_to_bucket() {
     s3 cp - "s3://$S3_BUCKET_NAME/$(date +%Y/%m/%d/backup-%H-%M-%S.sql.gz)"
 }
 
+upload_directus_to_bucket() {
+    # if the zipped backup file is larger than 50 GB add the --expected-size option
+    # see https://docs.aws.amazon.com/cli/latest/reference/s3/cp.html
+    s3 cp - "s3://$S3_BUCKET_NAME/$(date +%Y/%m/%d/directus-s3-backup-%H-%M-%S.gz)"
+}
+
+copy_directus_to_bucket() {
+    # Sync Directus files to a temporary directory
+    TEMP_DIR="/tmp/$DIRECTUS_S3_BUCKET_NAME"
+    s3 sync "$DIRECTUS_S3_BUCKET_NAME" "$TEMP_DIR"
+    tar -cf . - "$TEMP_DIR" | gzip | upload_directus_to_bucket
+}
+
 main() {
     ensure_bucket_exists
     echo "Taking backup and uploading it to S3..."
     pg_dump_database | gzip | upload_to_bucket
+    copy_directus_to_bucket
     echo "Done."
 }
 

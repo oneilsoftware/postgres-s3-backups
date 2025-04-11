@@ -10,7 +10,7 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: replace-with-your-postgres-instance-name
+          name: annex_ecommerce_db_development_11_0_2_d
           property: connectionString
       # pick the region closest to your database
       # For example, us-west-2 for the Oregon region
@@ -33,4 +33,5 @@ services:
       # For example, 3.20
       - key: ALPINE_VERSION
         sync: false
-
+      - key: DIRECTUS_S3_BUCKET_NAME
+        sync: false
