@@ -63,15 +63,21 @@ upload_directus_to_bucket() {
 
 copy_directus_to_bucket() {
     # Sync Directus files to a temporary directory
-    TEMP_DIR="/tmp/$DIRECTUS_S3_BUCKET_NAME"
+    BACKUP_FILE_PATH="$(date +%Y/%m/%d)"
+    BACKUP_FILE_NAME_BASE="$(date +directus-s3-backup-%H-%M-%S)"
+    BACKUP_FILE_NAME="$BACKUP_FILE_NAME_BASE.gz"
+    TEMP_DIR="/tmp/$BACKUP_FILE_NAME_BASE"
+    mkdir -p $TEMP_DIR
     s3 sync "s3://$DIRECTUS_S3_BUCKET_NAME" "$TEMP_DIR"
-    tar -cf - "$TEMP_DIR" | gzip | upload_directus_to_bucket
+    tar -cf - "$TEMP_DIR" | gzip > "/tmp/$BACKUP_FILE_NAME"
+    s3 cp "/tmp/$BACKUP_FILE_NAME" "s3://$S3_BUCKET_NAME/$BACKUP_FILE_PATH/$BACKUP_FILE_NAME"
 }
 
 main() {
     ensure_bucket_exists
     echo "Taking backup and uploading it to S3..."
     pg_dump_database | gzip | upload_to_bucket
+    echo "Copying S3 Directus files and uploading to S3..."
     copy_directus_to_bucket
     echo "Done."
 }
